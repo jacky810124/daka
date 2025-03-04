@@ -12,9 +12,9 @@ jobs:
 
       - name: Keep repository active
         run: |
-          date > last-update.txt
+          date > .last-update
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
-          git add last-update.txt
-          git commit -m "chore: keep repository active $(date)"
+          git add .last-update
+          git commit -m "chore: keep repository active"
           git push
