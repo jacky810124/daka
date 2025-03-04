@@ -1,7 +1,7 @@
 name: Keep alive
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '*/5 * * * *'
 jobs:
   keep-alive:
     runs-on: ubuntu-latest
