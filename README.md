@@ -66,9 +66,9 @@ crontab -e
 
 ### GitHub Actions
 
-> **Note**: [GitHub Actions scheduled events](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule) may experience slight delays.
+> **Note**: [GitHub Actions scheduled events](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule) may be delayed, especially at the top of the hour. Pick an off-peak minute (e.g. `41` instead of `0`).
 
-Update the schedule of workflow file at `.github/workflows/daka.yml`:
+Update the schedule of workflow file at `.github/workflows/daka.yaml`:
 
 ```yaml
 name: Daka
@@ -76,12 +76,17 @@ name: Daka
 on:
   schedule:
     # UTC times (adjust as needed)
-    - cron: '30 0 * * *' # Check-in
-    - cron: '0 11 * * *' # Check-out
+    - cron: '41 0 * * *' # Check-in
+    - cron: '13 11 * * *' # Check-out
+  workflow_dispatch:
+    inputs:
+      punch_type: ... # S = check-in, E = check-out
 
 jobs:
   daka: ...
 ```
+
+If you change the cron strings, update the matching strings in the `Daka` step too, since that step maps each schedule to `S` or `E`. You can also punch manually from the Actions tab with **Run workflow**.
 
 Add your secrets (MODULE, USERNAME, PASSWORD) in your GitHub repository settings.
 
