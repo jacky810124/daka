@@ -66,27 +66,32 @@ crontab -e
 
 ### GitHub Actions
 
-> **Note**: [GitHub Actions scheduled events](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule) may be delayed, especially at the top of the hour. Pick an off-peak minute (e.g. `41` instead of `0`).
+The workflow at `.github/workflows/daka.yaml` has no `schedule` trigger. [GitHub Actions scheduled events](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule) were delayed by hours, so a check-out could slip past midnight and fail. The workflow only runs on `workflow_dispatch`, with a required `punch_type` input (`S` = check-in, `E` = check-out).
 
-Update the schedule of workflow file at `.github/workflows/daka.yaml`:
+Trigger it from the Actions tab with **Run workflow**, or on a schedule with [cron-job.org](https://cron-job.org):
 
-```yaml
-name: Daka
+1. Create a fine-grained personal access token with access to this repository only and the **Actions: Read and write** permission.
+2. In cron-job.org, create two cronjobs (check-in and check-out) with time zone `Asia/Taipei`, running every day. Daka skips holidays, days off, and leave on its own.
+3. Configure each cronjob's request:
 
-on:
-  schedule:
-    # UTC times (adjust as needed)
-    - cron: '41 0 * * *' # Check-in
-    - cron: '13 11 * * *' # Check-out
-  workflow_dispatch:
-    inputs:
-      punch_type: ... # S = check-in, E = check-out
+| Field   | Value                                                                                                    |
+| ------- | -------------------------------------------------------------------------------------------------------- |
+| URL     | `https://api.github.com/repos/<owner>/daka/actions/workflows/daka.yaml/dispatches`                       |
+| Method  | `POST`                                                                                                   |
+| Headers | `Authorization: Bearer <token>`, `Accept: application/vnd.github+json`, `Content-Type: application/json` |
+| Body    | `{"ref":"main","inputs":{"punch_type":"S"}}` (`"E"` for check-out)                                       |
 
-jobs:
-  daka: ...
+A successful request returns `204 No Content`. Enable failure notifications in cron-job.org so a rejected request (e.g. an expired token) doesn't go unnoticed.
+
+The equivalent request with curl:
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer <token>" \
+  -H "Accept: application/vnd.github+json" \
+  https://api.github.com/repos/<owner>/daka/actions/workflows/daka.yaml/dispatches \
+  -d '{"ref":"main","inputs":{"punch_type":"S"}}'
 ```
-
-If you change the cron strings, update the matching strings in the `Daka` step too, since that step maps each schedule to `S` or `E`. You can also punch manually from the Actions tab with **Run workflow**.
 
 Add your secrets (MODULE, USERNAME, PASSWORD) in your GitHub repository settings.
 

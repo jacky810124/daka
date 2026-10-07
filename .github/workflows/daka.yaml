@@ -1,11 +1,9 @@
 name: Daka
 
 on:
-  schedule:
-    # UTC times, avoiding the top of the hour when GitHub's scheduler is busiest.
-    # Keep in sync with the cron strings in the "Daka" step below.
-    - cron: '41 0 * * *' # 08:41 Asia/Taipei, gogo
-    - cron: '13 11 * * *' # 19:13 Asia/Taipei, bye
+  # Scheduled runs were removed: GitHub's scheduler delayed them by hours, and a
+  # check-out that slipped past midnight failed. Trigger via the API instead
+  # (cron-job.org calls the workflow_dispatch endpoint on schedule).
   workflow_dispatch:
     inputs:
       punch_type:
@@ -42,10 +40,10 @@ jobs:
 
       - name: Daka
         env:
-          PUNCH_TYPE: ${{ inputs.punch_type || (github.event.schedule == '41 0 * * *' && 'S') || (github.event.schedule == '13 11 * * *' && 'E') || '' }}
+          PUNCH_TYPE: ${{ inputs.punch_type }}
         run: |
           if [ "$PUNCH_TYPE" != "S" ] && [ "$PUNCH_TYPE" != "E" ]; then
-            echo "Unknown punch type for event '${{ github.event_name }}' (schedule: '${{ github.event.schedule }}')"
+            echo "Unknown punch type: '$PUNCH_TYPE'"
             exit 1
           fi
           node src/index.js "$PUNCH_TYPE" > result.md
